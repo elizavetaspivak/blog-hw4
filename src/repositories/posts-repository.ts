@@ -1,5 +1,6 @@
 import {postsCollections} from "../db/mongo";
 import {ObjectId} from "mongodb";
+import {PostParams} from "../routes/post-route";
 
 type PostData = {
     title: string,
@@ -19,18 +20,38 @@ type UpdatePostData = {
 }
 
 export class PostsRepository {
-    static async getAllPosts() {
-        const posts = await postsCollections.find({}).toArray();
+    static async getAllPosts(sortData: PostParams) {
+        const sortBy = sortData.sortBy ?? 'createdAt'
+        const sortDirection = sortData.sortDirection ?? 'desc'
+        const pageNumber = sortData.pageNumber ?? 1
+        const pageSize = sortData.pageSize ?? 10
 
-        return posts.map((p: any) => ({
-            id: p._id,
-            title: p.title,
-            shortDescription: p.shortDescription,
-            content: p.content,
-            blogName: p.blogName,
-            createdAt: p.createdAt,
-            blogId: p.blogId,
-        }))
+        const posts = await postsCollections
+            .find({})
+            .sort(sortBy, sortDirection)
+            .skip((pageNumber - 1) * pageSize)
+            .limit(pageSize)
+            .toArray();
+
+        const totalCount = await postsCollections.countDocuments()
+
+        const pagesCount = posts.length / pageSize;
+
+        return  {
+            pagesCount: pagesCount,
+            page: pageNumber,
+            pageSize: pageNumber,
+            totalCount: totalCount,
+            items: posts.map((p: any) => ({
+                id: p._id,
+                title: p.title,
+                shortDescription: p.shortDescription,
+                content: p.content,
+                blogName: p.blogName,
+                createdAt: p.createdAt,
+                blogId: p.blogId,
+            }))
+        }
     }
 
     static async getPostById(id: string) {

@@ -8,7 +8,6 @@ import {
 import {authMiddleware} from "../middlewares/auth/auth-middleware";
 import {inputModelMiddleware} from "../middlewares/inputModelMiddleware/input-model-middleware";
 import {
-    RequestType,
     RequestTypeWithBody,
     RequestTypeWithBodyAndParams,
     RequestTypeWithParams,
@@ -22,10 +21,35 @@ export type BlogType = {
     websiteUrl: string
 }
 
+
+export type PaginatorType<I> = {
+    pagesCount: number,
+    page: number,
+    pageSize: number,
+    totalCount: number,
+    items: I[]
+}
+
 export const blogRoute = Router({})
 
-blogRoute.get('/', async (req: RequestType, res: ResponseType<BlogType[]>) => {
-    const bloggers = await BlogsRepository.getAllBlogs()
+export type BlogParams = {
+    searchNameTerm?: string
+    sortBy?: string
+    sortDirection?: string
+    pageNumber?: number
+    pageSize?: number
+}
+
+blogRoute.get('/', async (req: RequestTypeWithParams<BlogParams>, res: ResponseType<PaginatorType<BlogType>>) => {
+    const sortData = {
+        searchNameTerm: req.params.searchNameTerm,
+        sortBy: req.params.sortBy,
+        sortDirection: req.params.sortDirection,
+        pageNumber: req.params.pageNumber,
+        pageSize: req.params.pageSize,
+    }
+
+    const bloggers = await BlogsRepository.getAllBlogs(sortData)
     res.status(200).json(bloggers)
 })
 

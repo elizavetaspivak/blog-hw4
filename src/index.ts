@@ -1,17 +1,10 @@
-import express from "express";
-import {deleteAllDataRoute} from "./routes/delete-all-data-route";
-import {blogRoute} from "./routes/blog-route";
-import {postRoute} from "./routes/post-route";
 import {client} from "./db/mongo";
+import dotenv from 'dotenv'
+import {app} from "./settings";
 
-const app = express()
-const port = 3000
+dotenv.config()
 
-app.use(express.json())
-
-app.use('/testing/all-data', deleteAllDataRoute)
-app.use('/blogs', blogRoute)
-app.use('/posts', postRoute)
+const port = process.env.PORT || 80
 
 app.listen(port, async () => {
     try {
