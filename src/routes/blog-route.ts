@@ -87,6 +87,7 @@ blogRoute.get('/:blogId/posts', async (req: RequestTypeWithQueryAndParams<{ blog
 
     if (!blog){
         res.sendStatus(404)
+        return
     }
 
     const sortData = {
@@ -134,6 +135,13 @@ blogRoute.post('/:blogId/posts', authMiddleware, titleValidation, shortDescripti
     const content = req.body.content
 
     const blogId = req.params.blogId
+
+    const blog = await BlogsRepository.getBlogById(blogId)
+
+    if (!blog){
+        res.sendStatus(404)
+        return
+    }
 
     const createdPostId = await BlogsRepository.createPostToBlog({title, shortDescription, content},blogId)
 
