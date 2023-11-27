@@ -7,6 +7,7 @@ type CreatePostData = {
     description: string
     websiteUrl: string
     createdAt: string
+    isMembership: boolean
 }
 
 type UpdatePostData = {
@@ -49,7 +50,8 @@ export class BlogsRepository {
                 name: b.name,
                 description: b.description,
                 websiteUrl: b.websiteUrl,
-                createdAt: b.createdAt
+                createdAt: b.createdAt,
+                isMembership: b.isMembership
             }))
         }
     }

@@ -82,12 +82,13 @@ blogRoute.post('/', authMiddleware, nameValidation, descriptionValidation, websi
     const description = req.body.description
     const websiteUrl = req.body.websiteUrl
     const createdAt = new Date().toISOString()
+    const isMembership = false
 
-    const createdBlogId = await BlogsRepository.createBlog({name, description, websiteUrl, createdAt})
+    const createdBlogId = await BlogsRepository.createBlog({name, description, websiteUrl, createdAt, isMembership})
 
     const createdBlogMapper = {
         id: createdBlogId,
-        name, description, websiteUrl, createdAt
+        name, description, websiteUrl, createdAt, isMembership
     }
 
     res.status(201).json(createdBlogMapper)
