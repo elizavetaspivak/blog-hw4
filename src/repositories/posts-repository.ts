@@ -37,7 +37,7 @@ export class PostsRepository {
 
         const pagesCount = Math.ceil(totalCount / +pageSize);
 
-        return  {
+        return {
             pagesCount: +pagesCount,
             page: +pageNumber,
             pageSize: +pageSize,
@@ -57,7 +57,15 @@ export class PostsRepository {
     static async getPostById(id: string) {
         const post = await postsCollections.findOne({_id: new ObjectId(id)});
 
-        return post
+        return {
+            id: post._id.toString(),
+            title: post.title,
+            shortDescription: post.shortDescription,
+            content: post.content,
+            blogName: post.blogName,
+            createdAt: post.createdAt,
+            blogId: post.blogId,
+        }
     }
 
     static async createPost(postData: PostData) {

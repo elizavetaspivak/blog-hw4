@@ -100,7 +100,7 @@ export class BlogsRepository {
             pageSize: +pageSize,
             totalCount: +totalCount,
             items: posts.map((p: any) => ({
-                id: p._id,
+                id: p._id.toString(),
                 title: p.title,
                 shortDescription: p.shortDescription,
                 content: p.content,

@@ -15,7 +15,7 @@ import {
 } from "../types/common";
 import {contentValidation, shortDescriptionValidation, titleValidation} from "../validators/post-validators";
 import {PostsRepository} from "../repositories/posts-repository";
-import {PostParams} from "./post-route";
+import {PostParams, PostType} from "./post-route";
 
 export type BlogType = {
     id: string,
@@ -121,7 +121,7 @@ blogRoute.post('/:blogId/posts', authMiddleware, titleValidation, shortDescripti
     title: string,
     shortDescription: string,
     content: string
-}>, res: ResponseType<BlogType>) => {
+}>, res: ResponseType<PostType>) => {
     const title = req.body.title
     const shortDescription = req.body.shortDescription
     const content = req.body.content
