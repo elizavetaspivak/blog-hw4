@@ -10,9 +10,12 @@ import {inputModelMiddleware} from "../middlewares/inputModelMiddleware/input-mo
 import {
     RequestTypeWithBody,
     RequestTypeWithBodyAndParams,
-    RequestTypeWithParams, RequestTypeWithQuery,
+    RequestTypeWithParams, RequestTypeWithQuery, RequestTypeWithQueryAndParams,
     ResponseType
 } from "../types/common";
+import {contentValidation, shortDescriptionValidation, titleValidation} from "../validators/post-validators";
+import {PostsRepository} from "../repositories/posts-repository";
+import {PostParams} from "./post-route";
 
 export type BlogType = {
     id: string,
@@ -76,6 +79,21 @@ blogRoute.get('/:id', async (req: RequestTypeWithParams<{ id: string }>, res: Re
     res.send(blogForClient)
 })
 
+blogRoute.get('/:blogId/posts', async (req: RequestTypeWithQueryAndParams<{ blogId: string }, PostParams>, res: ResponseType<any>) => {
+    const blogId = req.params.blogId
+
+    const sortData = {
+        sortBy: req.query.sortBy,
+        sortDirection: req.query.sortDirection,
+        pageNumber: req.query.pageNumber,
+        pageSize: req.query.pageSize,
+    }
+
+    const posts = await BlogsRepository.getPostsByBlogId(blogId, sortData)
+
+    res.send(posts)
+})
+
 blogRoute.post('/', authMiddleware, nameValidation, descriptionValidation, websiteUrlValidation, inputModelMiddleware, async (req: RequestTypeWithBody<{
     name: string,
     description: string,
@@ -95,6 +113,26 @@ blogRoute.post('/', authMiddleware, nameValidation, descriptionValidation, websi
     }
 
     res.status(201).json(createdBlogMapper)
+})
+
+blogRoute.post('/:blogId/posts', authMiddleware, titleValidation, shortDescriptionValidation, contentValidation, inputModelMiddleware, async (req: RequestTypeWithBodyAndParams<{
+    blogId: string
+}, {
+    title: string,
+    shortDescription: string,
+    content: string
+}>, res: ResponseType<BlogType>) => {
+    const title = req.body.title
+    const shortDescription = req.body.shortDescription
+    const content = req.body.content
+
+    const blogId = req.params.blogId
+
+    const createdPostId = await BlogsRepository.createPostToBlog({title, shortDescription, content},blogId)
+
+    const post = await PostsRepository.getPostById(createdPostId);
+
+    res.status(201).json(post)
 })
 
 blogRoute.put('/:id', authMiddleware, nameValidation, descriptionValidation, websiteUrlValidation, inputModelMiddleware, async (req: RequestTypeWithBodyAndParams<{
