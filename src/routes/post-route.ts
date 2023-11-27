@@ -53,17 +53,7 @@ postRoute.get('/:id', async (req, res) => {
         return
     }
 
-    const postForClient = {
-        id: foundedPost._id,
-        title: foundedPost.title,
-        shortDescription: foundedPost.shortDescription,
-        content: foundedPost.content,
-        blogId: foundedPost.blogId,
-        blogName: foundedPost.blogName,
-        createdAt: foundedPost.createdAt
-    }
-
-    res.send(postForClient)
+    res.send(foundedPost)
 })
 
 postRoute.post('/', authMiddleware, titleValidation, shortDescriptionValidation, contentValidation, blogIdValidation, inputModelMiddleware, async (req, res) => {
