@@ -32,19 +32,19 @@ export class BlogsRepository {
                 }
             } : {})
             .sort(sortBy, sortDirection)
-            .skip((pageNumber - 1) * pageSize)
-            .limit(pageSize)
+            .skip((+pageNumber - 1) * +pageSize)
+            .limit(+pageSize)
             .toArray();
 
         const totalCount = await blogsCollections.countDocuments()
 
-        const pagesCount = blogs.length / pageSize;
+        const pagesCount = Math.ceil(totalCount / +pageSize);
 
         return {
             pagesCount: pagesCount,
-            page: pageNumber,
-            pageSize: pageNumber,
-            totalCount: totalCount,
+            page: +pageNumber,
+            pageSize: +pageSize,
+            totalCount: +totalCount,
             items: blogs.map((b: any) => ({
                 id: b._id,
                 name: b.name,

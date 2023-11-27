@@ -29,19 +29,19 @@ export class PostsRepository {
         const posts = await postsCollections
             .find({})
             .sort(sortBy, sortDirection)
-            .skip((pageNumber - 1) * pageSize)
-            .limit(pageSize)
+            .skip((+pageNumber - 1) * +pageSize)
+            .limit(+pageSize)
             .toArray();
 
         const totalCount = await postsCollections.countDocuments()
 
-        const pagesCount = posts.length / pageSize;
+        const pagesCount = Math.ceil(totalCount / +pageSize);
 
         return  {
-            pagesCount: pagesCount,
-            page: pageNumber,
-            pageSize: pageNumber,
-            totalCount: totalCount,
+            pagesCount: +pagesCount,
+            page: +pageNumber,
+            pageSize: +pageSize,
+            totalCount: +totalCount,
             items: posts.map((p: any) => ({
                 id: p._id,
                 title: p.title,

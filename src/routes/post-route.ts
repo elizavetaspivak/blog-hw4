@@ -9,7 +9,7 @@ import {
 } from "../validators/post-validators";
 import {authMiddleware} from "../middlewares/auth/auth-middleware";
 import {inputModelMiddleware} from "../middlewares/inputModelMiddleware/input-model-middleware";
-import {RequestTypeWithParams} from "../types/common";
+import {RequestTypeWithParams, RequestTypeWithQuery} from "../types/common";
 
 export type PostType = {
     id: string,
@@ -30,12 +30,12 @@ export type PostParams = {
 
 export const postRoute = Router({})
 
-postRoute.get('/', async (req: RequestTypeWithParams<PostParams>, res) => {
+postRoute.get('/', async (req: RequestTypeWithQuery<PostParams>, res) => {
     const sortData = {
-        sortBy: req.params.sortBy,
-        sortDirection: req.params.sortDirection,
-        pageNumber: req.params.pageNumber,
-        pageSize: req.params.pageSize,
+        sortBy: req.query.sortBy,
+        sortDirection: req.query.sortDirection,
+        pageNumber: req.query.pageNumber,
+        pageSize: req.query.pageSize,
     }
 
     const posts = await PostsRepository.getAllPosts(sortData)

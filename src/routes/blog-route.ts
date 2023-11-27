@@ -10,7 +10,7 @@ import {inputModelMiddleware} from "../middlewares/inputModelMiddleware/input-mo
 import {
     RequestTypeWithBody,
     RequestTypeWithBodyAndParams,
-    RequestTypeWithParams,
+    RequestTypeWithParams, RequestTypeWithQuery,
     ResponseType
 } from "../types/common";
 
@@ -40,14 +40,16 @@ export type BlogParams = {
     pageSize?: number
 }
 
-blogRoute.get('/', async (req: RequestTypeWithParams<BlogParams>, res: ResponseType<PaginatorType<BlogType>>) => {
+blogRoute.get('/', async (req: RequestTypeWithQuery<BlogParams>, res: ResponseType<PaginatorType<BlogType>>) => {
     const sortData = {
-        searchNameTerm: req.params.searchNameTerm,
-        sortBy: req.params.sortBy,
-        sortDirection: req.params.sortDirection,
-        pageNumber: req.params.pageNumber,
-        pageSize: req.params.pageSize,
+        searchNameTerm: req.query.searchNameTerm,
+        sortBy: req.query.sortBy,
+        sortDirection: req.query.sortDirection,
+        pageNumber: req.query.pageNumber,
+        pageSize: req.query.pageSize,
     }
+
+    console.log(sortData, 'sortData')
 
     const bloggers = await BlogsRepository.getAllBlogs(sortData)
     res.status(200).json(bloggers)
