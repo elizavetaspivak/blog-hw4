@@ -67,7 +67,8 @@ blogRoute.get('/:id', async (req: RequestTypeWithParams<{ id: string }>, res: Re
         name: blog.name,
         description: blog.description,
         websiteUrl: blog.websiteUrl,
-        createdAt: blog.createdAt
+        createdAt: blog.createdAt,
+        isMembership: blog.isMembership
     }
 
     res.send(blogForClient)
