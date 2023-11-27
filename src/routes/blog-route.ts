@@ -16,6 +16,7 @@ import {
 import {contentValidation, shortDescriptionValidation, titleValidation} from "../validators/post-validators";
 import {PostsRepository} from "../repositories/posts-repository";
 import {PostParams, PostType} from "./post-route";
+import {ObjectId} from "mongodb";
 
 export type BlogType = {
     id: string,
@@ -81,6 +82,12 @@ blogRoute.get('/:id', async (req: RequestTypeWithParams<{ id: string }>, res: Re
 
 blogRoute.get('/:blogId/posts', async (req: RequestTypeWithQueryAndParams<{ blogId: string }, PostParams>, res: ResponseType<any>) => {
     const blogId = req.params.blogId
+
+    const blog = await BlogsRepository.getBlogById(blogId)
+
+    if (!blog){
+        res.sendStatus(404)
+    }
 
     const sortData = {
         sortBy: req.query.sortBy,
