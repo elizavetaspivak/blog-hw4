@@ -57,6 +57,10 @@ export class PostsRepository {
     static async getPostById(id: string) {
         const post = await postsCollections.findOne({_id: new ObjectId(id)});
 
+        if (!post){
+            return null
+        }
+
         return {
             id: post._id.toString(),
             title: post.title,
