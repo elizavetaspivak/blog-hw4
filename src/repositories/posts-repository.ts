@@ -1,84 +1,30 @@
 import {postsCollections} from "../db/mongo";
 import {ObjectId} from "mongodb";
-import {PostParams} from "../routes/post-route";
-
-type PostData = {
-    title: string,
-    shortDescription: string,
-    content: string,
-    blogId: string,
-    createdAt: string
-    blogName: string
-}
-
-
-type UpdatePostData = {
-    title: string,
-    shortDescription: string,
-    content: string,
-    blogId: string
-}
+import {UpdatePostModel} from "../models/post/input/update.post.input.models";
+import {PostDbType} from "../models/db/db.models";
 
 export class PostsRepository {
-    static async getAllPosts(sortData: PostParams) {
-        const sortBy = sortData.sortBy ?? 'createdAt'
-        const sortDirection = sortData.sortDirection ?? 'desc'
-        const pageNumber = sortData.pageNumber ?? 1
-        const pageSize = sortData.pageSize ?? 10
 
-        const posts = await postsCollections
-            .find({})
-            .sort(sortBy, sortDirection)
-            .skip((+pageNumber - 1) * +pageSize)
-            .limit(+pageSize)
-            .toArray();
-
-        const totalCount = await postsCollections.countDocuments()
-
-        const pagesCount = Math.ceil(totalCount / +pageSize);
-
-        return {
-            pagesCount: +pagesCount,
-            page: +pageNumber,
-            pageSize: +pageSize,
-            totalCount: +totalCount,
-            items: posts.map((p: any) => ({
-                id: p._id,
-                title: p.title,
-                shortDescription: p.shortDescription,
-                content: p.content,
-                blogName: p.blogName,
-                createdAt: p.createdAt,
-                blogId: p.blogId,
-            }))
-        }
-    }
-
-    static async getPostById(id: string) {
+    static async getPostById(id: string): Promise<PostDbType | null> {
         const post = await postsCollections.findOne({_id: new ObjectId(id)});
 
-        if (!post){
+        if (!post) {
             return null
         }
 
-        return {
-            id: post._id.toString(),
-            title: post.title,
-            shortDescription: post.shortDescription,
-            content: post.content,
-            blogName: post.blogName,
-            createdAt: post.createdAt,
-            blogId: post.blogId,
-        }
+        return post
     }
-
-    static async createPost(postData: PostData) {
+    static async createPost(postData: PostDbType): Promise<string | null> {
         const res = await postsCollections.insertOne(postData)
 
-        return res.insertedId
+        if (!res || !res.insertedId){
+            return null
+        }
+
+        return res.insertedId.toString()
     }
 
-    static async updatePost(id: string, postData: UpdatePostData) {
+    static async updatePost(id: string, postData: UpdatePostModel): Promise<boolean> {
         const res = await postsCollections.updateOne({_id: new ObjectId(id)}, {
                 $set: {
                     title: postData.title,
@@ -92,7 +38,7 @@ export class PostsRepository {
         return !!res.matchedCount;
     }
 
-    static async deletePostById(id: string) {
+    static async deletePostById(id: string): Promise<boolean> {
         const res = await postsCollections.deleteOne({_id: new ObjectId(id)})
 
         return !!res.deletedCount

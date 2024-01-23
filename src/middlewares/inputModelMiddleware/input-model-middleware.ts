@@ -1,20 +1,35 @@
-import {validationResult} from "express-validator";
+import {Result, ValidationError, validationResult} from "express-validator";
 import {NextFunction, Request, Response} from "express";
+import {ErrorMessagesType, ErrorType, HTTP_RESPONSE_CODES} from "../../models/common";
 
 
 export const inputModelMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req).formatWith(error => ({
-        message: error.msg,
-        field: error.param
-    }))
+    const formattedErrors: Result<ErrorMessagesType> = validationResult(req).formatWith((error: ValidationError) => {
+        switch (error.type) {
+            case "field":
+                return {
+                    message: error.msg,
+                    field: error.path
+                }
+            default :
+                return {
+                    message: error.msg,
+                    field: '---'
+                }
+        }
+    })
 
-    if (!errors.isEmpty()) {
-        const err = errors.array({onlyFirstError: true})
+    if (!formattedErrors.isEmpty()) {
+        const errorMessages: ErrorMessagesType[] = formattedErrors.array({onlyFirstError: true})
 
-        return res.status(400).json({
-            errorsMessages: err
-        });
+        const errors: ErrorType = {
+            errorsMessages: errorMessages
+        }
+
+        res.status(HTTP_RESPONSE_CODES.BAD_REQUEST).send(errors);
+
+        return;
     }
 
-    next()
+    return next()
 }

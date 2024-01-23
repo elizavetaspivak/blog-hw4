@@ -1,123 +1,31 @@
 import {blogsCollections, postsCollections} from "../db/mongo";
 import {ObjectId} from "mongodb";
-import {BlogParams} from "../routes/blog-route";
-import {PostParams} from "../routes/post-route";
-
-type CreatePostData = {
-    name: string
-    description: string
-    websiteUrl: string
-    createdAt: string
-    isMembership: boolean
-}
-
-type UpdatePostData = {
-    name: string
-    description: string
-    websiteUrl: string
-}
-
-type CreatePostToBlogData = {
-    title: string,
-    shortDescription: string,
-    content: string
-}
-
+import {BlogDbType} from "../models/db/db.models";
+import {UpdateBlogModel} from "../models/blog/input/update.blog.input.models";
+import {CreatePostToBlogModel} from "../models/post/input/create.post.to.blog.input.models";
 
 export class BlogsRepository {
-    static async getAllBlogs(sortData: BlogParams) {
-        const searchNameTerm = sortData.searchNameTerm ?? null
-        const sortBy = sortData.sortBy ?? 'createdAt'
-        const sortDirection = sortData.sortDirection ?? 'desc'
-        const pageNumber = sortData.pageNumber ?? 1
-        const pageSize = sortData.pageSize ?? 10
-
-        const blogs = await blogsCollections
-            .find(searchNameTerm ? {
-                name: {
-                    $regex: searchNameTerm,
-                    $options: "i"
-                }
-            } : {})
-            .sort(sortBy, sortDirection)
-            .skip((+pageNumber - 1) * +pageSize)
-            .limit(+pageSize)
-            .toArray();
-
-        const totalCount = await blogsCollections.countDocuments(
-            searchNameTerm ? {
-                name: {
-                    $regex: searchNameTerm,
-                    $options: "i"
-                }
-            } : {})
-
-        const pagesCount = Math.ceil(totalCount / +pageSize);
-
-        return {
-            pagesCount: pagesCount,
-            page: +pageNumber,
-            pageSize: +pageSize,
-            totalCount: +totalCount,
-            items: blogs.map((b: any) => ({
-                id: b._id,
-                name: b.name,
-                description: b.description,
-                websiteUrl: b.websiteUrl,
-                createdAt: b.createdAt,
-                isMembership: b.isMembership
-            }))
-        }
-    }
-
-    static async getBlogById(id: string) {
+    static async getBlogById(id: string): Promise<BlogDbType | null> {
         const blog = await blogsCollections.findOne({_id: new ObjectId(id)});
+
+        if (!blog){
+            return  null
+        }
 
         return blog
     }
 
-    static async getPostsByBlogId(id: string, sortData: PostParams) {
-        const sortBy = sortData.sortBy ?? 'createdAt'
-        const sortDirection = sortData.sortDirection ?? 'desc'
-        const pageNumber = sortData.pageNumber ?? 1
-        const pageSize = sortData.pageSize ?? 10
-
-        const posts = await postsCollections
-            .find({blogId: id})
-            .sort(sortBy, sortDirection)
-            .skip((+pageNumber - 1) * +pageSize)
-            .limit(+pageSize)
-            .toArray();
-
-        const totalCount = await postsCollections.countDocuments(
-            {blogId: id})
-
-        const pagesCount = Math.ceil(totalCount / +pageSize);
-
-        return {
-            pagesCount: +pagesCount,
-            page: +pageNumber,
-            pageSize: +pageSize,
-            totalCount: +totalCount,
-            items: posts.map((p: any) => ({
-                id: p._id.toString(),
-                title: p.title,
-                shortDescription: p.shortDescription,
-                content: p.content,
-                blogName: p.blogName,
-                createdAt: p.createdAt,
-                blogId: p.blogId,
-            }))
-        }
-    }
-
-    static async createBlog(createdData: CreatePostData) {
+    static async createBlog(createdData: BlogDbType): Promise<string | null>  {
         const res = await blogsCollections.insertOne(createdData)
 
-        return res.insertedId
+        if (!res || !res.insertedId){
+            return null
+        }
+
+        return res.insertedId.toString()
     }
 
-    static async createPostToBlog(createdData: CreatePostToBlogData, blogId: string) {
+    static async createPostToBlog(createdData: CreatePostToBlogModel, blogId: string) {
         const blog = await this.getBlogById(blogId);
 
         const post = {
@@ -126,20 +34,20 @@ export class BlogsRepository {
             content: createdData.content,
             blogId,
             createdAt: new Date().toISOString(),
-            blogName: blog.name
+            blogName: blog!.name
         }
 
         const res = await postsCollections.insertOne(post)
 
-        return res.insertedId
+        return res.insertedId.toString()
     }
 
-    static async updateBlog(id: string, updatedData: UpdatePostData) {
+    static async updateBlog(id: string, updatedData: UpdateBlogModel): Promise<boolean> {
         const res = await blogsCollections.updateOne({_id: new ObjectId(id)}, {
                 $set: {
-                    "name": updatedData.name,
-                    "description": updatedData.description,
-                    "websiteUrl": updatedData.websiteUrl
+                    name: updatedData.name,
+                    description: updatedData.description,
+                    websiteUrl: updatedData.websiteUrl
                 }
             }, {upsert: true}
         )
@@ -147,7 +55,7 @@ export class BlogsRepository {
         return !!res.matchedCount;
     }
 
-    static async deleteBlogById(id: string) {
+    static async deleteBlogById(id: string): Promise<boolean> {
         const res = await blogsCollections.deleteOne({_id: new ObjectId(id)})
 
         return !!res.deletedCount
